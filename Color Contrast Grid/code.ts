@@ -16,6 +16,27 @@ figma.loadFontAsync({ family: "Roboto", style: "Regular" });
 
 const components = [];
 
+const badgeObj = {
+  aaa: {
+    color: { r: 0.01117647058823, g: 0.5372549019607, b: 0.1607843137254 },
+    description: "pass, AAA(7+)",
+  },
+  aa: {
+    color: { r: 0.2470588235294, g: 0.3843137254901, b: 0.8745098039215 },
+    description: "pass, AA(4.5+)",
+  },
+  aa18: {
+    color: { r: 0.8862745098039, g: 0.5686274509803, b: 0.0901960784313 },
+    description: "pass, Large Text Only(3+)",
+  },
+  dnp: {
+    color: { r: 0.8235294117647, g: 0.2431372549019, b: 0.2431372549019 },
+    description: "Does Not Pass",
+  },
+};
+
+const badgeArray = [];
+
 function createColorNameTile() {
   const colorNameTile = figma.createComponent();
   colorNameTile.name = "colorNameTile";
@@ -52,6 +73,59 @@ function createColorNameAndCodeTile() {
   colorNameAndCodeTile.appendChild(colorCode);
   colorNameAndCodeTile.x = 100;
   components.push(colorNameAndCodeTile);
+}
+
+function createBadge() {
+  for (let key in badgeObj) {
+    const textWrapper = figma.createComponent();
+    textWrapper.name = key;
+    textWrapper.layoutMode = "VERTICAL";
+    textWrapper.counterAxisSizingMode = "AUTO";
+    textWrapper.cornerRadius = 22;
+    textWrapper.horizontalPadding = 12;
+    textWrapper.verticalPadding = 4;
+    textWrapper.primaryAxisAlignItems = "CENTER";
+    textWrapper.backgrounds = [
+      { type: "SOLID", color: badgeObj[key]["color"] },
+    ];
+    const badgeText = figma.createText();
+    badgeText.characters = key.toUpperCase();
+    badgeText.fontSize = 10;
+    badgeText.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+    textWrapper.appendChild(badgeText);
+    badgeArray.push(textWrapper);
+  }
+}
+
+function createBadgeFrame() {
+  createBadge();
+  const descriptionContainer = figma.createFrame();
+  descriptionContainer.layoutMode = "VERTICAL";
+  descriptionContainer.counterAxisSizingMode = "AUTO";
+  descriptionContainer.itemSpacing = 17;
+  descriptionContainer.horizontalPadding = 10;
+  descriptionContainer.verticalPadding = 10;
+  for (let key in badgeObj) {
+    const description = figma.createText();
+    description.characters = badgeObj[key]["description"];
+    descriptionContainer.appendChild(description);
+  }
+  const frame = figma.createFrame();
+  frame.name = "badgeDescription";
+  frame.layoutMode = "HORIZONTAL";
+  frame.counterAxisSizingMode = "AUTO";
+  frame.itemSpacing = 10;
+  frame.horizontalPadding = 10;
+  frame.verticalPadding = 10;
+  const variants = figma.combineAsVariants(badgeArray, frame);
+  variants.name = "badge";
+  variants.layoutMode = "VERTICAL";
+  variants.counterAxisSizingMode = "AUTO";
+  variants.itemSpacing = 10;
+  variants.horizontalPadding = 10;
+  variants.verticalPadding = 10;
+  frame.appendChild(descriptionContainer);
+  frame.x = 350;
 }
 
 function rbgToHex(color) {
@@ -133,6 +207,7 @@ figma.ui.onmessage = (msg) => {
     const localColorStyles = figma.getLocalPaintStyles();
     createColorNameTile();
     createColorNameAndCodeTile();
+    createBadgeFrame();
     const tableContainer = figma.createFrame();
     tableContainer.layoutMode = "HORIZONTAL";
     tableContainer.itemSpacing = 5;
