@@ -65,6 +65,23 @@ function createColorNameAndCodeTile() {
     colorNameAndCodeTile.x = 100;
     components.push(colorNameAndCodeTile);
 }
+function createTile() {
+    const tile = figma.createComponent();
+    tile.name = "tile";
+    tile.layoutMode = "VERTICAL";
+    tile.resize(80, 80);
+    tile.horizontalPadding = 8;
+    tile.verticalPadding = 8;
+    tile.itemSpacing = 8;
+    tile.primaryAxisAlignItems = "SPACE_BETWEEN";
+    tile.backgrounds = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+    const text = figma.createText();
+    text.characters = "Text";
+    text.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
+    tile.appendChild(text);
+    tile.x = 650;
+    components.push(tile);
+}
 function createBadge() {
     for (let key in badgeObj) {
         const textWrapper = figma.createComponent();
@@ -131,9 +148,9 @@ function rbgToHex(color) {
     }
     return hex;
 }
-function tableHeader(colorStyles, layoutMode) {
+function tableHeader(colorStyles) {
     const tableHeader = figma.createFrame();
-    tableHeader.layoutMode = layoutMode;
+    tableHeader.layoutMode = "VERTICAL";
     tableHeader.itemSpacing = 5;
     tableHeader.counterAxisSizingMode = "AUTO";
     const tile = figma.createFrame();
@@ -166,21 +183,13 @@ function tableColumn(colorStyles, index) {
         if (columnIndex === index) {
             fillColor = { r: 1, g: 1, b: 1 };
         }
-        const tile = figma.createFrame();
-        tile.layoutMode = "VERTICAL";
-        tile.resize(80, 80);
-        tile.horizontalPadding = 8;
-        tile.verticalPadding = 8;
-        tile.itemSpacing = 8;
-        tile.primaryAxisAlignItems = "SPACE_BETWEEN";
-        tile.backgrounds = [{ type: "SOLID", color: fillColor }];
-        if (columnIndex !== index) {
-            const text = figma.createText();
-            text.characters = "Text";
-            text.fills = [{ type: "SOLID", color: rgbColor }];
-            tile.appendChild(text);
+        const instanceTile = components[2].createInstance();
+        instanceTile.backgrounds = [{ type: "SOLID", color: fillColor }];
+        instanceTile.children[0].fills = [{ type: "SOLID", color: rgbColor }];
+        if (columnIndex === index) {
+            instanceTile.children[0].characters = "";
         }
-        tableColumn.appendChild(tile);
+        tableColumn.appendChild(instanceTile);
     });
     return tableColumn;
 }
@@ -193,6 +202,7 @@ figma.ui.onmessage = (msg) => {
         createColorNameTile();
         createColorNameAndCodeTile();
         createBadgeFrame();
+        createTile();
         const tableContainer = figma.createFrame();
         tableContainer.layoutMode = "HORIZONTAL";
         tableContainer.itemSpacing = 5;
@@ -201,8 +211,7 @@ figma.ui.onmessage = (msg) => {
             { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
         ];
         tableContainer.y = 200;
-        // figma.currentPage.appendChild(tableHeader(localColorStyles, "VERTICAL"));
-        tableContainer.appendChild(tableHeader(localColorStyles, "VERTICAL"));
+        tableContainer.appendChild(tableHeader(localColorStyles));
         localColorStyles.map((paintStyle, index) => tableContainer.appendChild(tableColumn(localColorStyles, index)));
         nodes.push(tableContainer);
         figma.currentPage.selection = nodes;
