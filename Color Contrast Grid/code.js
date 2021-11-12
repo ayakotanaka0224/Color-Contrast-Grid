@@ -29,6 +29,46 @@ const badgeObj = {
     },
 };
 const badgeArray = [];
+// 相対輝度の計算に使うための計算式
+function getRGBForCalculateLuminance(rgb) {
+    if (rgb <= 0.03928) {
+        return rgb / 12.92;
+    }
+    else {
+        return Math.pow((rgb + 0.055) / 1.055, 2.4);
+    }
+}
+// 相対輝度を計算する
+function getRelativeLuminance(r, g, b) {
+    let R = getRGBForCalculateLuminance(r);
+    let G = getRGBForCalculateLuminance(g);
+    let B = getRGBForCalculateLuminance(b);
+    return 0.2126 * R + 0.7152 * G + 0.0722 * B;
+}
+// コントラスト比出力
+function getContrast(fillColor, rgbColor) {
+    let l1 = getRelativeLuminance(fillColor["r"], fillColor["g"], fillColor["b"]);
+    let l2 = getRelativeLuminance(rgbColor["r"], rgbColor["g"], rgbColor["b"]);
+    let bright = l1 > l2 ? l1 : l2;
+    let dark = l1 < l2 ? l1 : l2;
+    const contrast = (bright + 0.05) / (dark + 0.05);
+    return Math.floor(contrast * 10) / 10;
+}
+function setProperties(fillColor, rgbColor) {
+    const contrast = getContrast(fillColor, rgbColor);
+    if (contrast >= 7) {
+        return "aaa";
+    }
+    else if (contrast < 7 && contrast >= 4.5) {
+        return "aa";
+    }
+    else if (contrast < 4.5 && contrast >= 3) {
+        return "aa18";
+    }
+    else {
+        return "dnp";
+    }
+}
 function createColorNameTile() {
     const colorNameTile = figma.createComponent();
     colorNameTile.name = "colorNameTile";
@@ -89,7 +129,6 @@ function createTile() {
     text.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
     tile.x = 650;
     let badge = badgeArray[0].createInstance();
-    // badge.setProperties({ ["Property 1"]: "aa" });
     const num = figma.createText();
     num.characters = "num";
     tile.appendChild(text);
@@ -125,7 +164,7 @@ function createBadgeFrame() {
     const descriptionContainer = figma.createFrame();
     descriptionContainer.layoutMode = "VERTICAL";
     descriptionContainer.counterAxisSizingMode = "AUTO";
-    descriptionContainer.itemSpacing = 17;
+    descriptionContainer.itemSpacing = 12;
     descriptionContainer.horizontalPadding = 10;
     descriptionContainer.verticalPadding = 10;
     for (let key in badgeObj) {
@@ -203,8 +242,14 @@ function tableColumn(colorStyles, index) {
         const instanceTile = components[2].createInstance();
         instanceTile.backgrounds = [{ type: "SOLID", color: fillColor }];
         instanceTile.children[0].fills = [{ type: "SOLID", color: rgbColor }];
+        const badgeFrame = instanceTile.children[1].children;
+        badgeFrame[1].characters = getContrast(fillColor, rgbColor).toString();
+        badgeFrame[0].setProperties({
+            ["Property 1"]: setProperties(fillColor, rgbColor),
+        });
         if (columnIndex === index) {
-            instanceTile.children[0].characters = "";
+            instanceTile.children[0].visible = false;
+            instanceTile.children[1].visible = false;
         }
         tableColumn.appendChild(instanceTile);
     });
