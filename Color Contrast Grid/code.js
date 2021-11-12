@@ -66,6 +66,15 @@ function createColorNameAndCodeTile() {
     components.push(colorNameAndCodeTile);
 }
 function createTile() {
+    const footer = figma.createFrame();
+    footer.layoutMode = "HORIZONTAL";
+    footer.resize(64, 16);
+    footer.counterAxisSizingMode = "AUTO";
+    footer.primaryAxisAlignItems = "SPACE_BETWEEN";
+    footer.layoutAlign = "STRETCH";
+    footer.backgrounds = [
+        { type: "SOLID", color: { r: 1, g: 1, b: 1 }, opacity: 0 },
+    ];
     const tile = figma.createComponent();
     tile.name = "tile";
     tile.layoutMode = "VERTICAL";
@@ -78,8 +87,15 @@ function createTile() {
     const text = figma.createText();
     text.characters = "Text";
     text.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
-    tile.appendChild(text);
     tile.x = 650;
+    let badge = badgeArray[0].createInstance();
+    // badge.setProperties({ ["Property 1"]: "aa" });
+    const num = figma.createText();
+    num.characters = "num";
+    tile.appendChild(text);
+    tile.appendChild(footer);
+    footer.appendChild(badge);
+    footer.appendChild(num);
     components.push(tile);
 }
 function createBadge() {
@@ -87,11 +103,12 @@ function createBadge() {
         const textWrapper = figma.createComponent();
         textWrapper.name = key;
         textWrapper.layoutMode = "VERTICAL";
-        textWrapper.counterAxisSizingMode = "AUTO";
-        textWrapper.cornerRadius = 22;
-        textWrapper.horizontalPadding = 12;
-        textWrapper.verticalPadding = 4;
-        textWrapper.primaryAxisAlignItems = "CENTER";
+        textWrapper.resize(30, 20);
+        textWrapper.primaryAxisSizingMode = "AUTO";
+        textWrapper.cornerRadius = 8;
+        textWrapper.horizontalPadding = 2;
+        textWrapper.verticalPadding = 2;
+        textWrapper.counterAxisAlignItems = "CENTER";
         textWrapper.backgrounds = [
             { type: "SOLID", color: badgeObj[key]["color"] },
         ];
