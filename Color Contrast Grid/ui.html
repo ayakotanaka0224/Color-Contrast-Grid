@@ -1,13 +1,21 @@
-<h2>Color Contrast Grid</h2>
-<p>Count: <input id="count" value="5" /></p>
+<div>
+  <p class="show">Show</p>
+  <label><input type="checkbox" name="aaa" checked />AAA</label>
+  <label><input type="checkbox" name="aa" checked />AA</label>
+  <label><input type="checkbox" name="aa18" checked />AA18</label>
+  <label><input type="checkbox" name="dnp" checked />DNP</label>
+</div>
 <button id="create">Create</button>
 <button id="cancel">Cancel</button>
 <script>
   document.getElementById("create").onclick = () => {
-    const textbox = document.getElementById("count");
-    const count = parseInt(textbox.value, 10);
+    const aaa = document.getElementsByName("aaa")[0].checked;
+    const aa = document.getElementsByName("aa")[0].checked;
+    const aa18 = document.getElementsByName("aa18")[0].checked;
+    const dnp = document.getElementsByName("dnp")[0].checked;
+    const array = { aaa: aaa, aa: aa, aa18: aa18, dnp: dnp };
     parent.postMessage(
-      { pluginMessage: { type: "create-rectangles", count } },
+      { pluginMessage: { type: "create-rectangles", array } },
       "*"
     );
   };
@@ -16,3 +24,12 @@
     parent.postMessage({ pluginMessage: { type: "cancel" } }, "*");
   };
 </script>
+<style>
+  div {
+    margin-bottom: 20px;
+  }
+  .show {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+</style>
