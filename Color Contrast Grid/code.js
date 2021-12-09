@@ -298,27 +298,31 @@ figma.ui.onmessage = (msg) => {
   if (msg.type === "create-rectangles") {
     const nodes = [];
     const localColorStyles = figma.getLocalPaintStyles();
-    createColorNameTile();
-    createColorNameAndCodeTile();
-    createBadgeFrame();
-    createTile();
-    const tableContainer = figma.createFrame();
-    tableContainer.layoutMode = "HORIZONTAL";
-    tableContainer.itemSpacing = 5;
-    tableContainer.counterAxisSizingMode = "AUTO";
-    tableContainer.backgrounds = [
-      { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
-    ];
-    tableContainer.y = 200;
-    tableContainer.appendChild(tableHeader(localColorStyles));
-    localColorStyles.map((paintStyle, index) =>
-      tableContainer.appendChild(
-        tableColumn(localColorStyles, index, msg.array)
-      )
-    );
-    nodes.push(tableContainer);
-    figma.currentPage.selection = nodes;
-    figma.viewport.scrollAndZoomIntoView(nodes);
+    if (localColorStyles.length > 0) {
+      createColorNameTile();
+      createColorNameAndCodeTile();
+      createBadgeFrame();
+      createTile();
+      const tableContainer = figma.createFrame();
+      tableContainer.layoutMode = "HORIZONTAL";
+      tableContainer.itemSpacing = 5;
+      tableContainer.counterAxisSizingMode = "AUTO";
+      tableContainer.backgrounds = [
+        { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
+      ];
+      tableContainer.y = 200;
+      tableContainer.appendChild(tableHeader(localColorStyles));
+      localColorStyles.map((paintStyle, index) =>
+        tableContainer.appendChild(
+          tableColumn(localColorStyles, index, msg.array)
+        )
+      );
+      nodes.push(tableContainer);
+      figma.currentPage.selection = nodes;
+      figma.viewport.scrollAndZoomIntoView(nodes);
+    } else {
+      figma.notify("No local color style");
+    }
   }
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.
