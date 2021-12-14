@@ -211,6 +211,7 @@ function tableHeader(colorStyles) {
   tableHeader.appendChild(tile);
   colorStyles.map((paintStyle) => {
     const fillColor = paintStyle.paints[0].color;
+    if (!fillColor) return;
     const instance = components[1].createInstance();
     instance.children[0].characters = paintStyle.name;
     instance.children[1].characters = rbgToHex(fillColor);
@@ -257,6 +258,7 @@ function tableColumn(colorStyles, index, array) {
   tableColumn.appendChild(instance);
   colorStyles.map((paintStyle, index) => {
     let fillColor = paintStyle.paints[0].color;
+    if (!fillColor) return;
     if (columnIndex === index) {
       fillColor = { r: 1, g: 1, b: 1 };
     }
@@ -312,11 +314,12 @@ figma.ui.onmessage = (msg) => {
       ];
       tableContainer.y = 200;
       tableContainer.appendChild(tableHeader(localColorStyles));
-      localColorStyles.map((paintStyle, index) =>
-        tableContainer.appendChild(
-          tableColumn(localColorStyles, index, msg.array)
-        )
-      );
+      localColorStyles.map((paintStyle, index) => {
+        if (localColorStyles[index].paints[0].color)
+          tableContainer.appendChild(
+            tableColumn(localColorStyles, index, msg.array)
+          );
+      });
       nodes.push(tableContainer);
       figma.currentPage.selection = nodes;
       figma.viewport.scrollAndZoomIntoView(nodes);
