@@ -6,7 +6,7 @@
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__);
 figma.loadFontAsync({ family: "Roboto", style: "Regular" });
-figma.loadFontAsync({ family: "Inter", style: "Regular" });
+
 // Calls to "parent.postMessage" from within the HTML page will trigger this
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
@@ -78,6 +78,7 @@ function createColorNameTile() {
   colorNameTile.backgrounds = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   const colorName = figma.createText();
   colorName.characters = "Hex code";
+  colorName.fontName = { family: "Roboto", style: "Regular" };
   colorNameTile.appendChild(colorName);
   components.push(colorNameTile);
 }
@@ -95,8 +96,10 @@ function createColorNameAndCodeTile() {
   ];
   const colorName = figma.createText();
   colorName.characters = "Color name";
+  colorName.fontName = { family: "Roboto", style: "Regular" };
   const colorCode = figma.createText();
   colorCode.characters = "Hex code";
+  colorCode.fontName = { family: "Roboto", style: "Regular" };
   colorNameAndCodeTile.appendChild(colorName);
   colorNameAndCodeTile.appendChild(colorCode);
   colorNameAndCodeTile.x = 100;
@@ -123,11 +126,13 @@ function createTile() {
   tile.backgrounds = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
   const text = figma.createText();
   text.characters = "Text";
+  text.fontName = { family: "Roboto", style: "Regular" };
   text.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
   tile.x = 650;
   let badge = badgeArray[0].createInstance();
   const num = figma.createText();
   num.characters = "num";
+  num.fontName = { family: "Roboto", style: "Regular" };
   tile.appendChild(text);
   tile.appendChild(footer);
   footer.appendChild(badge);
@@ -151,6 +156,7 @@ function createBadge() {
     const badgeText = figma.createText();
     badgeText.characters = key.toUpperCase();
     badgeText.fontSize = 10;
+    badgeText.fontName = { family: "Roboto", style: "Regular" };
     badgeText.fills = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
     textWrapper.appendChild(badgeText);
     badgeArray.push(textWrapper);
@@ -167,6 +173,7 @@ function createBadgeFrame() {
   for (let key in badgeObj) {
     const description = figma.createText();
     description.characters = badgeObj[key]["description"];
+    description.fontName = { family: "Roboto", style: "Regular" };
     descriptionContainer.appendChild(description);
   }
   const frame = figma.createFrame();
@@ -298,37 +305,44 @@ function tableColumn(colorStyles, index, array) {
 figma.ui.onmessage = (msg) => {
   // One way of distinguishing between different types of messages sent from
   // your HTML page is to use an object with a "type" property like this.
-  if (msg.type === "create-rectangles") {
-    const nodes = [];
-    const localColorStyles = figma.getLocalPaintStyles();
-    if (localColorStyles.length > 0) {
-      createColorNameTile();
-      createColorNameAndCodeTile();
-      createBadgeFrame();
-      createTile();
-      const tableContainer = figma.createFrame();
-      tableContainer.layoutMode = "HORIZONTAL";
-      tableContainer.itemSpacing = 5;
-      tableContainer.counterAxisSizingMode = "AUTO";
-      tableContainer.backgrounds = [
-        { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
-      ];
-      tableContainer.y = 200;
-      tableContainer.appendChild(tableHeader(localColorStyles));
-      localColorStyles.map((paintStyle, index) => {
-        if (localColorStyles[index].paints[0].color)
-          tableContainer.appendChild(
-            tableColumn(localColorStyles, index, msg.array)
-          );
-      });
-      nodes.push(tableContainer);
-      figma.currentPage.selection = nodes;
-      figma.viewport.scrollAndZoomIntoView(nodes);
-    } else {
-      figma.notify("No local color style");
-    }
+  const loadFonts = async () => {
+    await figma.loadFontAsync({ family: "Inter", style: "Regular" });
   }
+
+  // Load the fonts by running the function
+  loadFonts().then(() => {
+    if (msg.type === "create-rectangles") {
+      const nodes = [];
+      const localColorStyles = figma.getLocalPaintStyles();
+      if (localColorStyles.length > 0) {
+        createColorNameTile();
+        createColorNameAndCodeTile();
+        createBadgeFrame();
+        createTile();
+        const tableContainer = figma.createFrame();
+        tableContainer.layoutMode = "HORIZONTAL";
+        tableContainer.itemSpacing = 5;
+        tableContainer.counterAxisSizingMode = "AUTO";
+        tableContainer.backgrounds = [
+          { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
+        ];
+        tableContainer.y = 200;
+        tableContainer.appendChild(tableHeader(localColorStyles));
+        localColorStyles.map((paintStyle, index) => {
+          if (localColorStyles[index].paints[0].color)
+            tableContainer.appendChild(
+              tableColumn(localColorStyles, index, msg.array)
+            );
+        });
+        nodes.push(tableContainer);
+        figma.currentPage.selection = nodes;
+        figma.viewport.scrollAndZoomIntoView(nodes);
+      } else {
+        figma.notify("No local color style");
+      }
+    }
+    figma.closePlugin();
+  })
   // Make sure to close the plugin when you're done. Otherwise the plugin will
   // keep running, which shows the cancel button at the bottom of the screen.
-  figma.closePlugin();
 };
