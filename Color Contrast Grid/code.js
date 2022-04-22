@@ -6,8 +6,8 @@
 // full browser environment (see documentation).
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
-    width: 300,
-    height: 400,
+    width: 188,
+    height: 236,
 });
 figma.loadFontAsync({ family: "Roboto", style: "Regular" });
 figma.loadFontAsync({ family: "Inter", style: "Regular" });
