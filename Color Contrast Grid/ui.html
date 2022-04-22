@@ -1,27 +1,17 @@
 <div>
   <p class="show">Show</p>
-  <div class="toggle-wrapper">
-    AAA
-    <div class="toggle-switch">
-      <input type="checkbox" id="aaa" checked /><label for="aaa"></label>
+  <div class="checklist-wrapper">
+    <div class="checkbox-wrapper">
+      <input type="checkbox" id="aaa" checked /><label for="aaa">AAA</label>
     </div>
-  </div>
-  <div class="toggle-wrapper">
-    AA
-    <div class="toggle-switch">
-      <input type="checkbox" id="aa" checked /><label for="aa"></label>
+    <div class="checkbox-wrapper">
+      <input type="checkbox" id="aa" checked /><label for="aa">AA</label>
     </div>
-  </div>
-  <div class="toggle-wrapper">
-    AA18
-    <div class="toggle-switch">
-      <input type="checkbox" id="aa18" checked /><label for="aa18"></label>
+    <div class="checkbox-wrapper">
+      <input type="checkbox" id="aa18" checked /><label for="aa18">AA18</label>
     </div>
-  </div>
-  <div class="toggle-wrapper">
-    DNP
-    <div class="toggle-switch">
-      <input type="checkbox" id="dnp" checked /><label for="dnp"></label>
+    <div class="checkbox-wrapper">
+      <input type="checkbox" id="dnp" checked /><label for="dnp">DNP</label>
     </div>
   </div>
 </div>
@@ -52,73 +42,86 @@
   }
   .show {
     font-weight: bold;
-    margin-bottom: 16px;
-    color: #313131;
+    margin-bottom: 4px;
+    color: #111823;
   }
-  .toggle-wrapper {
+  .checklist-wrapper {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 6px;
-    color: #313131;
+    flex-direction: column;
   }
-  .toggle-switch {
-    position: relative;
-    width: 40px;
-    height: 20px;
+  .checkbox-wrapper {
+    padding: 4px 0;
+    user-select: none;
   }
+  label,
   input {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 5;
-    opacity: 0;
     cursor: pointer;
   }
+
+  input[type="checkbox"] {
+    display: none;
+  }
   label {
-    width: 40px;
-    height: 20px;
-    background: #ccc;
+    cursor: pointer;
+    padding: 5px 36px;
     position: relative;
-    display: inline-block;
-    border-radius: 46px;
-    transition: 0.4s;
-    box-sizing: border-box;
   }
-  label:after {
+  label::before {
     content: "";
-    position: absolute;
-    width: 20px;
+    background-color: #fff;
+    border: 1px solid #20938a;
+    border-radius: 4px;
     height: 20px;
-    border-radius: 100%;
-    left: 0;
-    top: 0;
-    z-index: 2;
-    background: #fff;
-    box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
-    transition: 0.4s;
+    width: 20px;
+    left: 5px;
+    position: absolute;
+    top: calc(50% - 11px);
   }
-  input:checked + label {
-    background-color: #4bd865;
+  input[type="checkbox"]:checked + label::before {
+    background-color: #20938a;
   }
-  input:checked + label:after {
-    left: 20px;
+  label::after {
+    content: "";
+    border-right: 3px solid #fff;
+    border-bottom: 3px solid #fff;
+    display: block;
+    height: 9px;
+    width: 5px;
+    opacity: 0;
+    position: absolute;
+    top: calc(50% - 7px);
+    left: 11px;
+    transform: rotate(45deg);
+  }
+  input[type="checkbox"]:checked + label::after {
+    opacity: 1;
+  }
+  input[type="checkbox"]:not(:checked) + label {
+    color: gray;
   }
 
   footer {
     margin: 20px 0;
   }
   button {
-    color: #fff;
     border-radius: 4px;
-    padding: 6px 8px;
+    padding: 10px 20px;
     border: none;
+    font-weight: bold;
+    transition: 0.2s;
+    cursor: pointer;
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.15);
+  }
+  button:hover {
+    opacity: 0.8;
+    box-shadow: none;
   }
   button#create {
-    background-color: #2f80ed;
+    color: #fff;
+    background-color: #20938a;
   }
   button#cancel {
-    background-color: #adadad;
+    color: #20938a;
+    background-color: #c6e4e3;
   }
 </style>

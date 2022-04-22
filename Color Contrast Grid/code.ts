@@ -6,7 +6,10 @@
 // full browser environment (see documentation).
 
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__);
+figma.showUI(__html__, {
+  width: 300,
+  height: 400,
+});
 
 figma.loadFontAsync({ family: "Roboto", style: "Regular" });
 figma.loadFontAsync({ family: "Inter", style: "Regular" });
@@ -15,7 +18,7 @@ figma.loadFontAsync({ family: "Inter", style: "Regular" });
 // callback. The callback will be passed the "pluginMessage" property of the
 // posted message.
 
-const components = [];
+const components: { createInstance: () => any }[] = [];
 
 const badgeObj = {
   aaa: {
@@ -36,21 +39,21 @@ const badgeObj = {
   },
 };
 
-const badgeArray = [];
+const badgeArray: ComponentNode[] = [];
 
 // 相対輝度の計算に使うための計算式
-const getRGBForCalculateLuminance = (rgb) => {
+const getRGBForCalculateLuminance = (rgb: number) => {
   return rgb <= 0.03928 ? rgb / 12.92 : Math.pow((rgb + 0.055) / 1.055, 2.4);
 };
 
 // 相対輝度を計算する
-const getRelativeLuminance = (r, g, b) => {
+const getRelativeLuminance = (r: number, g: number, b: number) => {
   const [R, G, B] = [r, g, b].map(getRGBForCalculateLuminance);
   return 0.2126 * R + 0.7152 * G + 0.0722 * B;
 };
 
 // コントラスト比出力
-const getContrast = (fillColor, rgbColor) => {
+const getContrast = (fillColor: RGB, rgbColor: RGB) => {
   const l1 = getRelativeLuminance(
     fillColor["r"],
     fillColor["g"],
@@ -62,7 +65,7 @@ const getContrast = (fillColor, rgbColor) => {
   return Math.floor(contrast * 10) / 10;
 };
 
-const setProperties = (fillColor, rgbColor) => {
+const setProperties = (fillColor: RGB, rgbColor: RGB) => {
   const contrast = getContrast(fillColor, rgbColor);
   if (contrast >= 7) return "aaa";
   if (contrast >= 4.5) return "aa";
@@ -175,7 +178,7 @@ const createTile = () => {
 };
 
 const createBadge = () => {
-  for (let key in badgeObj) {
+  for (const [key, status] of Object.entries(badgeObj)) {
     const textWrapper = createFigmaComponent(
       {
         name: key,
@@ -183,7 +186,7 @@ const createBadge = () => {
         horizontalPadding: 2,
         verticalPadding: 2,
         cornerRadius: 8,
-        fills: [{ type: "SOLID", color: badgeObj[key]["color"] }],
+        fills: [{ type: "SOLID", color: status.color }],
         counterAxisAlignItems: "CENTER",
       },
       [30, 20]
@@ -233,17 +236,17 @@ const createBadgeFrame = () => {
   frame.x = 350;
 };
 
-const toHexColor = (color) => {
+const toHexColor = (color: number) => {
   return Math.round(color * 255)
     .toString(16)
     .padStart(2, "0");
 };
 
-const rbgToHex = (color) => {
+const rbgToHex = (color: RGB) => {
   return `#${Object.values(color).map(toHexColor).join("")}`;
 };
 
-const tableHeader = (colorStyles) => {
+const tableHeader = (colorStyles: PaintStyle[]) => {
   const tableHeader = createFigmaFrame({
     layoutMode: "VERTICAL",
     itemSpacing: 5,
@@ -258,7 +261,7 @@ const tableHeader = (colorStyles) => {
   );
   tableHeader.appendChild(tile);
   colorStyles.map((paintStyle) => {
-    const fillColor = paintStyle.paints[0].color;
+    const fillColor = (paintStyle.paints[0] as SolidPaint).color;
     const instance = components[1].createInstance();
     instance.children[0].characters = paintStyle.name;
     instance.children[1].characters = rbgToHex(fillColor);
@@ -268,7 +271,11 @@ const tableHeader = (colorStyles) => {
   return tableHeader;
 };
 
-const tableColumn = (colorStyles, index) => {
+const tableColumn = (
+  colorStyles: PaintStyle[],
+  index: number,
+  array: { [key: string]: boolean }
+) => {
   const columnIndex = index;
   const tableColumn = createFigmaFrame({
     layoutMode: "VERTICAL",
@@ -276,18 +283,21 @@ const tableColumn = (colorStyles, index) => {
     counterAxisSizingMode: "AUTO",
   });
   const basePaintStyle = colorStyles[index];
-  const rgbColor = basePaintStyle.paints[0].color;
-  const instance = components[0].createInstance();
-  instance.children[0].characters = rbgToHex(rgbColor);
+  const rgbColor = (basePaintStyle.paints[0] as SolidPaint).color;
+  const instance = (components[0] as ComponentNode).createInstance();
+  (instance.children[0] as TextNode).characters = rbgToHex(rgbColor);
   instance.fillStyleId = basePaintStyle.id;
   tableColumn.appendChild(instance);
   colorStyles.map((paintStyle, index) => {
     const instanceTile = components[2].createInstance();
-    let fillColor = paintStyle.paints[0].color;
-    if (columnIndex === index) {
+    let fillColor = (paintStyle.paints[0] as SolidPaint).color;
+    const contrastClass = setProperties(fillColor, rgbColor);
+    if (columnIndex === index || !array[contrastClass]) {
       instanceTile.children[0].fills = [
         { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
       ];
+      instanceTile.children[0].visible = false;
+      instanceTile.children[1].visible = false;
     } else {
       instanceTile.children[0].fillStyleId = paintStyle.id;
       instanceTile.fillStyleId = basePaintStyle.id;
@@ -297,10 +307,9 @@ const tableColumn = (colorStyles, index) => {
     badgeFrame[0].setProperties({
       ["Property 1"]: setProperties(fillColor, rgbColor),
     });
-    if (columnIndex === index) {
-      instanceTile.children[0].visible = false;
-      instanceTile.children[1].visible = false;
-    }
+    badgeFrame[0].setProperties({
+      ["Property 1"]: contrastClass,
+    });
     tableColumn.appendChild(instanceTile);
   });
   return tableColumn;
@@ -309,6 +318,7 @@ const tableColumn = (colorStyles, index) => {
 figma.ui.onmessage = (msg) => {
   // One way of distinguishing between different types of messages sent from
   // your HTML page is to use an object with a "type" property like this.
+  console.log(msg);
   if (msg.type === "create-rectangles") {
     const nodes: SceneNode[] = [];
     const localColorStyles = figma.getLocalPaintStyles();
@@ -326,7 +336,9 @@ figma.ui.onmessage = (msg) => {
     });
     tableContainer.appendChild(tableHeader(localColorStyles));
     localColorStyles.map((_, index) =>
-      tableContainer.appendChild(tableColumn(localColorStyles, index))
+      tableContainer.appendChild(
+        tableColumn(localColorStyles, index, msg.array)
+      )
     );
     nodes.push(tableContainer);
     figma.currentPage.selection = nodes;

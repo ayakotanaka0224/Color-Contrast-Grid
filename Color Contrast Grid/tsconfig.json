@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "strict": true,
     "target": "esNext",
     "lib": ["esNext"],
     "typeRoots": ["./node_modules/@types", "./node_modules/@figma"]

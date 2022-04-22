@@ -1,10 +1,14 @@
+"use strict";
 // This plugin will open a window to prompt the user to enter a number, and
 // it will then create that many rectangles on the screen.
 // This file holds the main code for the plugins. It has access to the *document*.
 // You can access browser APIs in the <script> tag inside "ui.html" which has a
 // full browser environment (see documentation).
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__);
+figma.showUI(__html__, {
+    width: 300,
+    height: 400,
+});
 figma.loadFontAsync({ family: "Roboto", style: "Regular" });
 figma.loadFontAsync({ family: "Inter", style: "Regular" });
 // Calls to "parent.postMessage" from within the HTML page will trigger this
@@ -140,14 +144,14 @@ const createTile = () => {
     components.push(tile);
 };
 const createBadge = () => {
-    for (let key in badgeObj) {
+    for (const [key, status] of Object.entries(badgeObj)) {
         const textWrapper = createFigmaComponent({
             name: key,
             layoutMode: "VERTICAL",
             horizontalPadding: 2,
             verticalPadding: 2,
             cornerRadius: 8,
-            fills: [{ type: "SOLID", color: badgeObj[key]["color"] }],
+            fills: [{ type: "SOLID", color: status.color }],
             counterAxisAlignItems: "CENTER",
         }, [30, 20]);
         textWrapper.primaryAxisSizingMode = "AUTO";
@@ -222,7 +226,7 @@ const tableHeader = (colorStyles) => {
     });
     return tableHeader;
 };
-const tableColumn = (colorStyles, index) => {
+const tableColumn = (colorStyles, index, array) => {
     const columnIndex = index;
     const tableColumn = createFigmaFrame({
         layoutMode: "VERTICAL",
@@ -238,10 +242,13 @@ const tableColumn = (colorStyles, index) => {
     colorStyles.map((paintStyle, index) => {
         const instanceTile = components[2].createInstance();
         let fillColor = paintStyle.paints[0].color;
-        if (columnIndex === index) {
+        const contrastClass = setProperties(fillColor, rgbColor);
+        if (columnIndex === index || !array[contrastClass]) {
             instanceTile.children[0].fills = [
                 { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
             ];
+            instanceTile.children[0].visible = false;
+            instanceTile.children[1].visible = false;
         }
         else {
             instanceTile.children[0].fillStyleId = paintStyle.id;
@@ -252,10 +259,9 @@ const tableColumn = (colorStyles, index) => {
         badgeFrame[0].setProperties({
             ["Property 1"]: setProperties(fillColor, rgbColor),
         });
-        if (columnIndex === index) {
-            instanceTile.children[0].visible = false;
-            instanceTile.children[1].visible = false;
-        }
+        badgeFrame[0].setProperties({
+            ["Property 1"]: contrastClass,
+        });
         tableColumn.appendChild(instanceTile);
     });
     return tableColumn;
@@ -263,6 +269,7 @@ const tableColumn = (colorStyles, index) => {
 figma.ui.onmessage = (msg) => {
     // One way of distinguishing between different types of messages sent from
     // your HTML page is to use an object with a "type" property like this.
+    console.log(msg);
     if (msg.type === "create-rectangles") {
         const nodes = [];
         const localColorStyles = figma.getLocalPaintStyles();
@@ -279,7 +286,7 @@ figma.ui.onmessage = (msg) => {
             y: 200,
         });
         tableContainer.appendChild(tableHeader(localColorStyles));
-        localColorStyles.map((_, index) => tableContainer.appendChild(tableColumn(localColorStyles, index)));
+        localColorStyles.map((_, index) => tableContainer.appendChild(tableColumn(localColorStyles, index, msg.array)));
         nodes.push(tableContainer);
         figma.currentPage.selection = nodes;
         figma.viewport.scrollAndZoomIntoView(nodes);
