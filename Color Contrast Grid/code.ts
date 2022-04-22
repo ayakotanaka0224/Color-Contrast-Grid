@@ -39,44 +39,36 @@ const badgeObj = {
 const badgeArray = [];
 
 // 相対輝度の計算に使うための計算式
-function getRGBForCalculateLuminance(rgb) {
-  if (rgb <= 0.03928) {
-    return rgb / 12.92;
-  } else {
-    return Math.pow((rgb + 0.055) / 1.055, 2.4);
-  }
-}
+const getRGBForCalculateLuminance = (rgb) => {
+  return rgb <= 0.03928 ? rgb / 12.92 : Math.pow((rgb + 0.055) / 1.055, 2.4);
+};
 
 // 相対輝度を計算する
-function getRelativeLuminance(r, g, b) {
-  let R = getRGBForCalculateLuminance(r);
-  let G = getRGBForCalculateLuminance(g);
-  let B = getRGBForCalculateLuminance(b);
+const getRelativeLuminance = (r, g, b) => {
+  const [R, G, B] = [r, g, b].map(getRGBForCalculateLuminance);
   return 0.2126 * R + 0.7152 * G + 0.0722 * B;
-}
+};
 
 // コントラスト比出力
 function getContrast(fillColor, rgbColor) {
-  let l1 = getRelativeLuminance(fillColor["r"], fillColor["g"], fillColor["b"]);
-  let l2 = getRelativeLuminance(rgbColor["r"], rgbColor["g"], rgbColor["b"]);
-  let bright = l1 > l2 ? l1 : l2;
-  let dark = l1 < l2 ? l1 : l2;
+  const l1 = getRelativeLuminance(
+    fillColor["r"],
+    fillColor["g"],
+    fillColor["b"]
+  );
+  const l2 = getRelativeLuminance(rgbColor["r"], rgbColor["g"], rgbColor["b"]);
+  const [bright, dark] = l1 > l2 ? [l1, l2] : [l2, l1];
   const contrast = (bright + 0.05) / (dark + 0.05);
   return Math.floor(contrast * 10) / 10;
 }
 
-function setProperties(fillColor, rgbColor) {
+const setProperties = (fillColor, rgbColor) => {
   const contrast = getContrast(fillColor, rgbColor);
-  if (contrast >= 7) {
-    return "aaa";
-  } else if (contrast < 7 && contrast >= 4.5) {
-    return "aa";
-  } else if (contrast < 4.5 && contrast >= 3) {
-    return "aa18";
-  } else {
-    return "dnp";
-  }
-}
+  if (contrast >= 7) return "aaa";
+  if (contrast >= 4.5) return "aa";
+  if (contrast >= 3) return "aa18";
+  return "dnp";
+};
 
 function createColorNameTile() {
   const colorNameTile = figma.createComponent();
@@ -203,21 +195,15 @@ function createBadgeFrame() {
   frame.x = 350;
 }
 
-function rbgToHex(color) {
-  var hex = "#";
-  const rgb = [
-    parseInt(color.r * 255).toString(16),
-    parseInt(color.g * 255).toString(16),
-    parseInt(color.b * 255).toString(16),
-  ];
-  for (let i = 0; i < rgb.length; ++i) {
-    if (rgb[i].length == 1) {
-      rgb[i] = "0" + rgb[i];
-    }
-    hex += rgb[i];
-  }
-  return hex;
-}
+const toHexColor = (color) => {
+  return Math.round(color * 255)
+    .toString(16)
+    .padStart(2, "0");
+};
+
+const rbgToHex = (color) => {
+  return `#${Object.values(color).map(toHexColor).join("")}`;
+};
 
 function tableHeader(colorStyles) {
   const tableHeader = figma.createFrame();
