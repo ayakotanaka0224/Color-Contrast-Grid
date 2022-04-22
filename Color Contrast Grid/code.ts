@@ -50,7 +50,7 @@ const getRelativeLuminance = (r, g, b) => {
 };
 
 // コントラスト比出力
-function getContrast(fillColor, rgbColor) {
+const getContrast = (fillColor, rgbColor) => {
   const l1 = getRelativeLuminance(
     fillColor["r"],
     fillColor["g"],
@@ -60,7 +60,7 @@ function getContrast(fillColor, rgbColor) {
   const [bright, dark] = l1 > l2 ? [l1, l2] : [l2, l1];
   const contrast = (bright + 0.05) / (dark + 0.05);
   return Math.floor(contrast * 10) / 10;
-}
+};
 
 const setProperties = (fillColor, rgbColor) => {
   const contrast = getContrast(fillColor, rgbColor);
@@ -70,91 +70,125 @@ const setProperties = (fillColor, rgbColor) => {
   return "dnp";
 };
 
-function createColorNameTile() {
-  const colorNameTile = figma.createComponent();
-  colorNameTile.name = "colorNameTile";
-  colorNameTile.layoutMode = "VERTICAL";
-  colorNameTile.resize(80, 80);
-  colorNameTile.horizontalPadding = 8;
-  colorNameTile.verticalPadding = 8;
-  colorNameTile.itemSpacing = 8;
-  colorNameTile.primaryAxisAlignItems = "CENTER";
-  colorNameTile.backgrounds = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
-  const colorName = figma.createText();
-  colorName.characters = "Hex code";
+const createFigmaComponent = (
+  props: { [key: string]: any },
+  size?: [number, number]
+) => {
+  const component = figma.createComponent();
+  Object.assign(component, props);
+  if (size !== undefined) component.resize(...size);
+  return component;
+};
+
+const createFigmaFrame = (
+  props: { [key: string]: any },
+  size?: [number, number]
+) => {
+  const frame = figma.createFrame();
+  Object.assign(frame, props);
+  if (size !== undefined) frame.resize(...size);
+  return frame;
+};
+
+const createFigmaText = (content: string, props?: { [key: string]: any }) => {
+  const component = figma.createText();
+  Object.assign(component, { characters: content });
+  if (props) {
+    Object.assign(component, props);
+  }
+  return component;
+};
+
+const createColorNameTile = () => {
+  const colorNameTile = createFigmaComponent(
+    {
+      name: "colorNameTile",
+      layoutMode: "VERTICAL",
+      horizontalPadding: 8,
+      verticalPadding: 8,
+      itemSpacing: 8,
+      primaryAxisAlignItems: "CENTER",
+      fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }],
+    },
+    [80, 80]
+  );
+  const colorName = createFigmaText("Hex code");
   colorNameTile.appendChild(colorName);
   components.push(colorNameTile);
-}
+};
 
-function createColorNameAndCodeTile() {
-  const colorNameAndCodeTile = figma.createComponent();
-  colorNameAndCodeTile.name = "colorNameAndCodeTile";
-  colorNameAndCodeTile.layoutMode = "VERTICAL";
-  colorNameAndCodeTile.resize(200, 80);
-  colorNameAndCodeTile.horizontalPadding = 8;
-  colorNameAndCodeTile.verticalPadding = 8;
-  colorNameAndCodeTile.itemSpacing = 8;
-  colorNameAndCodeTile.primaryAxisAlignItems = "CENTER";
-  colorNameAndCodeTile.backgrounds = [
-    { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
-  ];
-  const colorName = figma.createText();
-  colorName.characters = "Color name";
-  const colorCode = figma.createText();
-  colorCode.characters = "Hex code";
+const createColorNameAndCodeTile = () => {
+  const colorNameAndCodeTile = createFigmaComponent(
+    {
+      name: "colorNameAndCodeTile",
+      layoutMode: "VERTICAL",
+      horizontalPadding: 8,
+      verticalPadding: 8,
+      itemSpacing: 8,
+      primaryAxisAlignItems: "CENTER",
+      fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }],
+    },
+    [200, 80]
+  );
+  const colorName = createFigmaText("Color name");
+  const colorCode = createFigmaText("Hex code");
   colorNameAndCodeTile.appendChild(colorName);
   colorNameAndCodeTile.appendChild(colorCode);
   colorNameAndCodeTile.x = 100;
   components.push(colorNameAndCodeTile);
-}
+};
 
-function createTile() {
-  const footer = figma.createFrame();
-  footer.layoutMode = "HORIZONTAL";
-  footer.resize(64, 16);
+const createTile = () => {
+  const footer = createFigmaFrame(
+    {
+      layoutMode: "HORIZONTAL",
+      layoutAlign: "STRETCH",
+      primaryAxisAlignItems: "SPACE_BETWEEN",
+      fills: [],
+    },
+    [64, 16]
+  );
   footer.counterAxisSizingMode = "AUTO";
-  footer.primaryAxisAlignItems = "SPACE_BETWEEN";
-  footer.layoutAlign = "STRETCH";
-  footer.backgrounds = [
-    { type: "SOLID", color: { r: 1, g: 1, b: 1 }, opacity: 0 },
-  ];
-  const tile = figma.createComponent();
-  tile.name = "tile";
-  tile.layoutMode = "VERTICAL";
-  tile.resize(80, 80);
-  tile.horizontalPadding = 8;
-  tile.verticalPadding = 8;
-  tile.itemSpacing = 8;
-  tile.primaryAxisAlignItems = "SPACE_BETWEEN";
-  tile.backgrounds = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+  const tile = createFigmaComponent(
+    {
+      name: "tile",
+      layoutMode: "VERTICAL",
+      horizontalPadding: 8,
+      verticalPadding: 8,
+      itemSpacing: 8,
+      primaryAxisAlignItems: "SPACE_BETWEEN",
+      fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }],
+    },
+    [80, 80]
+  );
   const text = figma.createText();
   text.characters = "Text";
   text.fills = [{ type: "SOLID", color: { r: 0, g: 0, b: 0 } }];
   tile.x = 650;
-  let badge = badgeArray[0].createInstance();
-  const num = figma.createText();
-  num.characters = "num";
+  const badge = badgeArray[0].createInstance();
+  const num = createFigmaText("num");
   tile.appendChild(text);
   tile.appendChild(footer);
   footer.appendChild(badge);
   footer.appendChild(num);
   components.push(tile);
-}
+};
 
-function createBadge() {
+const createBadge = () => {
   for (let key in badgeObj) {
-    const textWrapper = figma.createComponent();
-    textWrapper.name = key;
-    textWrapper.layoutMode = "VERTICAL";
-    textWrapper.resize(30, 20);
+    const textWrapper = createFigmaComponent(
+      {
+        name: key,
+        layoutMode: "VERTICAL",
+        horizontalPadding: 2,
+        verticalPadding: 2,
+        cornerRadius: 8,
+        fills: [{ type: "SOLID", color: badgeObj[key]["color"] }],
+        counterAxisAlignItems: "CENTER",
+      },
+      [30, 20]
+    );
     textWrapper.primaryAxisSizingMode = "AUTO";
-    textWrapper.cornerRadius = 8;
-    textWrapper.horizontalPadding = 2;
-    textWrapper.verticalPadding = 2;
-    textWrapper.counterAxisAlignItems = "CENTER";
-    textWrapper.backgrounds = [
-      { type: "SOLID", color: badgeObj[key]["color"] },
-    ];
     const badgeText = figma.createText();
     badgeText.characters = key.toUpperCase();
     badgeText.fontSize = 10;
@@ -162,28 +196,32 @@ function createBadge() {
     textWrapper.appendChild(badgeText);
     badgeArray.push(textWrapper);
   }
-}
+};
 
-function createBadgeFrame() {
+const createBadgeFrame = () => {
   createBadge();
-  const descriptionContainer = figma.createFrame();
-  descriptionContainer.layoutMode = "VERTICAL";
-  descriptionContainer.counterAxisSizingMode = "AUTO";
-  descriptionContainer.itemSpacing = 12;
-  descriptionContainer.horizontalPadding = 10;
-  descriptionContainer.verticalPadding = 10;
-  for (let key in badgeObj) {
-    const description = figma.createText();
-    description.characters = badgeObj[key]["description"];
-    descriptionContainer.appendChild(description);
+  const descriptionContainer = createFigmaFrame({
+    layoutMode: "VERTICAL",
+    itemSpacing: 12,
+    horizontalPadding: 10,
+    verticalPadding: 10,
+    primaryAxisAlignItems: "SPACE_BETWEEN",
+    fills: [],
+    counterAxisSizingMode: "AUTO",
+  });
+  for (const status of Object.values(badgeObj)) {
+    descriptionContainer.appendChild(createFigmaText(status.description));
   }
-  const frame = figma.createFrame();
-  frame.name = "badgeDescription";
-  frame.layoutMode = "HORIZONTAL";
-  frame.counterAxisSizingMode = "AUTO";
-  frame.itemSpacing = 10;
-  frame.horizontalPadding = 10;
-  frame.verticalPadding = 10;
+  const frame = createFigmaFrame({
+    name: "badgeDescription",
+    layoutMode: "HORIZONTAL",
+    itemSpacing: 10,
+    horizontalPadding: 10,
+    verticalPadding: 10,
+    primaryAxisAlignItems: "SPACE_BETWEEN",
+    fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }],
+    counterAxisSizingMode: "AUTO",
+  });
   const variants = figma.combineAsVariants(badgeArray, frame);
   variants.name = "badge";
   variants.layoutMode = "VERTICAL";
@@ -193,7 +231,7 @@ function createBadgeFrame() {
   variants.verticalPadding = 10;
   frame.appendChild(descriptionContainer);
   frame.x = 350;
-}
+};
 
 const toHexColor = (color) => {
   return Math.round(color * 255)
@@ -205,45 +243,55 @@ const rbgToHex = (color) => {
   return `#${Object.values(color).map(toHexColor).join("")}`;
 };
 
-function tableHeader(colorStyles) {
-  const tableHeader = figma.createFrame();
-  tableHeader.layoutMode = "VERTICAL";
-  tableHeader.itemSpacing = 5;
-  tableHeader.counterAxisSizingMode = "AUTO";
-  const tile = figma.createFrame();
-  tile.resize(200, 80);
-  tile.backgrounds = [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }];
+const tableHeader = (colorStyles) => {
+  const tableHeader = createFigmaFrame({
+    layoutMode: "VERTICAL",
+    itemSpacing: 5,
+    counterAxisSizingMode: "AUTO",
+  });
+  const tile = createFigmaFrame(
+    {
+      fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }],
+      itemSpacing: 5,
+    },
+    [200, 80]
+  );
   tableHeader.appendChild(tile);
   colorStyles.map((paintStyle) => {
     const fillColor = paintStyle.paints[0].color;
     const instance = components[1].createInstance();
     instance.children[0].characters = paintStyle.name;
     instance.children[1].characters = rbgToHex(fillColor);
-    instance.backgrounds = [{ type: "SOLID", color: fillColor }];
+    instance.fillStyleId = paintStyle.id;
     tableHeader.appendChild(instance);
   });
   return tableHeader;
-}
+};
 
-function tableColumn(colorStyles, index) {
+const tableColumn = (colorStyles, index) => {
   const columnIndex = index;
-  const tableColumn = figma.createFrame();
-  tableColumn.layoutMode = "VERTICAL";
-  tableColumn.itemSpacing = 5;
-  tableColumn.counterAxisSizingMode = "AUTO";
-  const rgbColor = colorStyles[index].paints[0].color;
+  const tableColumn = createFigmaFrame({
+    layoutMode: "VERTICAL",
+    itemSpacing: 5,
+    counterAxisSizingMode: "AUTO",
+  });
+  const basePaintStyle = colorStyles[index];
+  const rgbColor = basePaintStyle.paints[0].color;
   const instance = components[0].createInstance();
   instance.children[0].characters = rbgToHex(rgbColor);
-  instance.backgrounds = [{ type: "SOLID", color: rgbColor }];
+  instance.fillStyleId = basePaintStyle.id;
   tableColumn.appendChild(instance);
   colorStyles.map((paintStyle, index) => {
+    const instanceTile = components[2].createInstance();
     let fillColor = paintStyle.paints[0].color;
     if (columnIndex === index) {
-      fillColor = { r: 1, g: 1, b: 1 };
+      instanceTile.children[0].fills = [
+        { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
+      ];
+    } else {
+      instanceTile.children[0].fillStyleId = paintStyle.id;
+      instanceTile.fillStyleId = basePaintStyle.id;
     }
-    const instanceTile = components[2].createInstance();
-    instanceTile.backgrounds = [{ type: "SOLID", color: fillColor }];
-    instanceTile.children[0].fills = [{ type: "SOLID", color: rgbColor }];
     const badgeFrame = instanceTile.children[1].children;
     badgeFrame[1].characters = getContrast(fillColor, rgbColor).toString();
     badgeFrame[0].setProperties({
@@ -256,7 +304,7 @@ function tableColumn(colorStyles, index) {
     tableColumn.appendChild(instanceTile);
   });
   return tableColumn;
-}
+};
 
 figma.ui.onmessage = (msg) => {
   // One way of distinguishing between different types of messages sent from
@@ -268,16 +316,16 @@ figma.ui.onmessage = (msg) => {
     createColorNameAndCodeTile();
     createBadgeFrame();
     createTile();
-    const tableContainer = figma.createFrame();
-    tableContainer.layoutMode = "HORIZONTAL";
-    tableContainer.itemSpacing = 5;
-    tableContainer.counterAxisSizingMode = "AUTO";
-    tableContainer.backgrounds = [
-      { type: "SOLID", color: { r: 1, g: 1, b: 1 } },
-    ];
-    tableContainer.y = 200;
+    const tableContainer = createFigmaFrame({
+      name: "grid",
+      layoutMode: "HORIZONTAL",
+      itemSpacing: 5,
+      fills: [{ type: "SOLID", color: { r: 1, g: 1, b: 1 } }],
+      counterAxisSizingMode: "AUTO",
+      y: 200,
+    });
     tableContainer.appendChild(tableHeader(localColorStyles));
-    localColorStyles.map((paintStyle, index) =>
+    localColorStyles.map((_, index) =>
       tableContainer.appendChild(tableColumn(localColorStyles, index))
     );
     nodes.push(tableContainer);
