@@ -299,8 +299,8 @@ const tableColumn = (
       instanceTile.children[0].visible = false;
       instanceTile.children[1].visible = false;
     } else {
-      instanceTile.children[0].fillStyleId = paintStyle.id;
-      instanceTile.fillStyleId = basePaintStyle.id;
+      instanceTile.children[0].fillStyleId = basePaintStyle.id;
+      instanceTile.fillStyleId = paintStyle.id;
     }
     const badgeFrame = instanceTile.children[1].children;
     badgeFrame[1].characters = getContrast(fillColor, rgbColor).toString();
@@ -318,10 +318,12 @@ const tableColumn = (
 figma.ui.onmessage = (msg) => {
   // One way of distinguishing between different types of messages sent from
   // your HTML page is to use an object with a "type" property like this.
-  console.log(msg);
   if (msg.type === "create-rectangles") {
     const nodes: SceneNode[] = [];
     const localColorStyles = figma.getLocalPaintStyles();
+    const gridColorStyles = localColorStyles.filter(
+      (item) => item.paints[0].type == "SOLID"
+    );
     createColorNameTile();
     createColorNameAndCodeTile();
     createBadgeFrame();
@@ -334,11 +336,9 @@ figma.ui.onmessage = (msg) => {
       counterAxisSizingMode: "AUTO",
       y: 200,
     });
-    tableContainer.appendChild(tableHeader(localColorStyles));
-    localColorStyles.map((_, index) =>
-      tableContainer.appendChild(
-        tableColumn(localColorStyles, index, msg.array)
-      )
+    tableContainer.appendChild(tableHeader(gridColorStyles));
+    gridColorStyles.map((_, index) =>
+      tableContainer.appendChild(tableColumn(gridColorStyles, index, msg.array))
     );
     nodes.push(tableContainer);
     figma.currentPage.selection = nodes;
